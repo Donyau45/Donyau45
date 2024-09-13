@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動漫卡片瀑布流與AI助手</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card-container {
+            column-count: 4;
+            column-gap: 20px;
+        }
+        @media (max-width: 1200px) {
+            .card-container { column-count: 3; }
+        }
+        @media (max-width: 900px) {
+            .card-container { column-count: 2; }
+        }
+        @media (max-width: 600px) {
+            .card-container { column-count: 1; }
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            break-inside: avoid;
+            overflow: hidden;
+        }
+        .card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .card-content {
+            padding: 16px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .card-text {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* 簡化搜索框樣式 */
+        #searchInput {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        /* 簡化聊天容器樣式 */
+        .chat-container {
+            border: 1px solid #ddd;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .chat-message {
+            margin-bottom: 5px;
+            padding: 5px;
+        }
+        .user-message { text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>動漫卡片瀑布流與AI助手</h1>
+        
+        <input type="text" id="searchInput" placeholder="搜尋動漫或詢問AI助手...">
+        <div id="chatContainer" class="chat-container"></div>
+        <div id="cardContainer" class="card-container"></div>
+    </div>
+
+    <script>
+        const cardContainer = document.getElementById('cardContainer');
+        const searchInput = document.getElementById('searchInput');
+        const chatContainer = document.getElementById('chatContainer');
+
+        const cardData = [
+            { title: '鬼滅之刃', text: '炭治郎為了妹妹而成為鬼殺隊成員的熱血故事', image: 'https://picsum.photos/300/200?random=1' },
+            { title: '進擊的巨人', text: '人類與巨人的生存之戰,充滿懸疑與反轉', image: 'https://picsum.photos/300/200?random=2' },
+            { title: '我的英雄學院', text: '擁有超能力的世界中,少年成長為英雄的故事', image: 'https://picsum.photos/300/200?random=3' },
+            { title: '海賊王', text: '路飛帶領草帽海賊團尋找大秘寶One Piece的冒險', image: 'https://picsum.photos/300/200?random=4' },
+        ];
+
+        function createCard(card) {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card';
+            cardElement.innerHTML = `
+                <img src="${card.image}" alt="${card.title}">
+                <div class="card-content">
+                    <h2 class="card-title">${card.title}</h2>
+                    <p class="card-text">${card.text}</p>
+                </div>
+            `;
+            return cardElement;
+        }
+
+        function renderCards(cards) {
+            cardContainer.innerHTML = '';
+            cards.forEach(card => {
+                const cardElement = createCard(card);
+                cardContainer.appendChild(cardElement);
+            });
+        }
+
+        function filterCards(searchTerm) {
+            return cardData.filter(card => 
+                card.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                card.text.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        function addChatMessage(message, isUser = false) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `chat-message ${isUser ? 'user-message' : ''}`;
+            messageElement.textContent = message;
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function getAIResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('推薦') || lowerMessage.includes('推荐')) {
+                return '我推薦您觀看《鬼滅之刃》,它的劇情緊湊,角色塑造出色,是近年來非常受歡迎的動漫!';
+            } else if (lowerMessage.includes('最新')) {
+                return '最近很多人在討論《咒術迴戰》第二季,它延續了第一季的精彩,加入了更多新角色和驚人的戰鬥場面。';
+            } else if (lowerMessage.includes('經典') || lowerMessage.includes('经典')) {
+                return '說到經典動漫,《新世紀福音戰士》絕對是不可錯過的。它深刻的主題和獨特的風格影響了整個動漫界。';
+            } else if (lowerMessage.includes('長篇') || lowerMessage.includes('长篇')) {
+                return '如果您喜歡長篇動漫,《海賊王》是個很好的選擇。它已經連載了20多年,世界觀龐大,冒險精彩紛呈。';
+            } else if (lowerMessage.includes('你好') || lowerMessage.includes('哈囉') || lowerMessage.includes('嗨')) {
+                return '你好！我是動漫AI助手。有什麼可以幫助您的嗎？您可以詢問我關於動漫推薦、最新動漫、經典作品或長篇系列的問題。';
+            } else if (lowerMessage.includes('謝謝') || lowerMessage.includes('感謝')) {
+                return '不用謝！很高興能幫到您。如果還有其他問題，隨時問我哦！';
+            } else {
+                return '抱歉,我沒有完全理解您的問題。您可以詢問關於動漫推薦、最新動漫、經典作品或長篇系列的問題。或者，您可以嘗試重新表述您的問題。';
+            }
+        }
+
+        function handleSearch() {
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                addChatMessage(searchTerm, true);
+                const filteredCards = filterCards(searchTerm);
+                renderCards(filteredCards);
+                
+                setTimeout(() => {
+                    const aiResponse = getAIResponse(searchTerm);
+                    addChatMessage(aiResponse);
+                }, 500);
+
+                searchInput.value = '';
+            }
+        }
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+
+        // 初始渲染所有卡片
+        renderCards(cardData);
+
+        // 添加初始歡迎消息
+        addChatMessage("你好！我是動漫AI助手。有什麼可以幫助您的嗎？");
+    </script>
+</body>
+</html>
